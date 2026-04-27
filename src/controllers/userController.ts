@@ -28,3 +28,43 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Failed to update profile' });
   }
 };
+
+export const getSyllabusProgress = async (req: AuthRequest, res: Response) => {
+  try {
+    const uid = req.user?.uid;
+    const doc = await db.collection('users').doc(uid!).collection('config').doc('syllabus_progress').get();
+    if (!doc.exists) {
+      return res.json({ completedChapters: [] });
+    }
+    res.json(doc.data());
+  } catch (error) {
+    logger.error('Error fetching syllabus progress:', error);
+    res.status(500).json({ message: 'Failed to fetch syllabus progress' });
+  }
+};
+
+export const toggleChapter = async (req: AuthRequest, res: Response) => {
+  try {
+    const uid = req.user?.uid;
+    const { chapterName } = req.body;
+    const docRef = db.collection('users').doc(uid!).collection('config').doc('syllabus_progress');
+    const doc = await docRef.get();
+    
+    let completedChapters: string[] = [];
+    if (doc.exists) {
+      completedChapters = doc.data()?.completedChapters || [];
+    }
+
+    if (completedChapters.includes(chapterName)) {
+      completedChapters = completedChapters.filter(c => c !== chapterName);
+    } else {
+      completedChapters.push(chapterName);
+    }
+
+    await docRef.set({ completedChapters }, { merge: true });
+    res.json({ completedChapters });
+  } catch (error) {
+    logger.error('Error toggling chapter:', error);
+    res.status(500).json({ message: 'Failed to toggle chapter' });
+  }
+};

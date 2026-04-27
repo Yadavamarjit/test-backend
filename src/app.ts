@@ -12,11 +12,29 @@ import userRoutes from './routes/userRoutes';
 const app = express();
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  crossOriginOpenerPolicy: false,
+}));
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://prep-wheat.vercel.app',
+      process.env.CORS_ORIGIN
+    ].filter(Boolean);
+
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true
 }));
 
 // Rate limiting
@@ -32,8 +50,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Logging
-app.use(morgan('combined', { 
-  stream: { write: (message) => logger.http(message.trim()) } 
+app.use(morgan('combined', {
+  stream: { write: (message) => logger.http(message.trim()) }
 }));
 
 // Health check
@@ -42,7 +60,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'SSC CPO Prep API is active',
     version: '1.0.0',
     status: 'Ready for Deployment'
