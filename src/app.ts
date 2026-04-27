@@ -40,6 +40,14 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'SSC CPO Prep API is active',
+    version: '1.0.0',
+    status: 'Ready for Deployment'
+  });
+});
+
 // Routes
 app.use('/api/events', eventRoutes);
 app.use('/api/users', userRoutes);
