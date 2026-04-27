@@ -9,9 +9,12 @@ export const getEvents = async (req: AuthRequest, res: Response) => {
     const snapshot = await db.collection('users').doc(uid!).collection('events').get();
     const events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.json(events);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Error fetching events:', error);
-    res.status(500).json({ message: 'Failed to fetch events' });
+    res.status(500).json({ 
+      message: 'Failed to fetch events', 
+      error: error.message 
+    });
   }
 };
 
@@ -25,9 +28,9 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       createdAt: new Date().getTime()
     });
     res.status(201).json({ id: docRef.id, ...eventData });
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Error creating event:', error);
-    res.status(500).json({ message: 'Failed to create event' });
+    res.status(500).json({ message: 'Failed to create event', error: error.message });
   }
 };
 
@@ -38,9 +41,9 @@ export const updateEvent = async (req: AuthRequest, res: Response) => {
     const updateData = req.body;
     await db.collection('users').doc(uid!).collection('events').doc(id).update(updateData);
     res.json({ id, ...updateData });
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Error updating event:', error);
-    res.status(500).json({ message: 'Failed to update event' });
+    res.status(500).json({ message: 'Failed to update event', error: error.message });
   }
 };
 

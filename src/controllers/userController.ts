@@ -11,9 +11,9 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
     res.json(doc.data());
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Error fetching profile:', error);
-    res.status(500).json({ message: 'Failed to fetch profile' });
+    res.status(500).json({ message: 'Failed to fetch profile', error: error.message });
   }
 };
 
@@ -23,9 +23,9 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     const updateData = req.body;
     await db.collection('users').doc(uid!).set(updateData, { merge: true });
     res.json({ message: 'Profile updated successfully', ...updateData });
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Error updating profile:', error);
-    res.status(500).json({ message: 'Failed to update profile' });
+    res.status(500).json({ message: 'Failed to update profile', error: error.message });
   }
 };
 
